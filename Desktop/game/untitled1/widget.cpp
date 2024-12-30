@@ -1,4 +1,4 @@
-﻿#include "Widget.h"
+#include "Widget.h"
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -26,7 +26,7 @@ Widget::Widget(QWidget *parent)
 
             connect(button, &QPushButton::clicked, this, &Widget::onButtonClicked);
             button->installEventFilter(this);  // 安裝事件過濾器
-            
+
             button->setProperty("row",i);
             button->setProperty("col",j);//設定按鈕座標
         }
@@ -189,16 +189,6 @@ void Widget::revealAllBombs() {
     messageBox->show();
 }
 
-    // 彈出對話框詢問是否重置遊戲
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Game Over", "遊戲結束! 再來一場?",
-                                  QMessageBox::Yes | QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-        resetGame();  // 重置遊戲
-    }
-    // 如果玩家選擇 No，遊戲將保持結束狀態
-}
-
 
 void Widget::disableAllButtons() {
     for (int i = 0; i < rows; ++i) {
@@ -235,4 +225,3 @@ void Widget::resetGame() {
     }
     initializeGame();
 }
-
