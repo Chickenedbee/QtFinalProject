@@ -26,6 +26,9 @@ Widget::Widget(QWidget *parent)
 
             connect(button, &QPushButton::clicked, this, &Widget::onButtonClicked);
             button->installEventFilter(this);  // 安裝事件過濾器
+            
+            button->setProperty("row",i);
+            button->setProperty("col",j);//設定按鈕座標
         }
         buttons.append(buttonRow);
     }
