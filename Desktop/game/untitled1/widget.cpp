@@ -164,17 +164,30 @@ void Widget::expandEmptyArea(int row, int col) {
 }
 
 void Widget::revealAllBombs() {
-    // 顯示所有地雷和數字
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            if (grid[i][j] == -1) { // 顯示地雷
+            if (grid[i][j] == -1) {
                 buttons[i][j]->setText("💣");
-            } else if (grid[i][j] > 0) { // 顯示周圍地雷數
+            } else if (grid[i][j] > 0) {
                 buttons[i][j]->setText(QString::number(grid[i][j]));
             }
-            buttons[i][j]->setEnabled(false); // 禁用按鈕，遊戲結束後不再能操作
+            buttons[i][j]->setEnabled(false);
         }
     }
+    QMessageBox *messageBox = new QMessageBox(this);
+    messageBox->setWindowTitle("Game Over");
+    messageBox->setText("遊戲結束! 再來一場?");
+    messageBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+    connect(messageBox, &QMessageBox::buttonClicked, this, [this, messageBox](QAbstractButton *button) {
+        if (messageBox->buttonRole(button) == QMessageBox::YesRole) {
+            resetGame();  // 重置遊戲
+        }
+        messageBox->deleteLater();
+    });
+
+    messageBox->show();
+}
 
     // 彈出對話框詢問是否重置遊戲
     QMessageBox::StandardButton reply;
@@ -204,13 +217,22 @@ void Widget::keyPressEvent(QKeyEvent *event) {
 }
 
 void Widget::resetGame() {
-    grid.fill(QVector<int>(cols, 0)); // 重置地雷盤面
+    if (grid.size() != rows) grid.resize(rows);
+    grid.fill(QVector<int>(cols, 0));
+
+    if (flags.size() != rows) flags.resize(rows);
+    flags.fill(QVector<bool>(cols, false));
+
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            buttons[i][j]->setEnabled(true); // 重新啟用按鈕
-            buttons[i][j]->setText(""); // 清除按鈕文本
+            buttons[i][j]->setEnabled(true);
+            buttons[i][j]->setText("");
+            buttons[i][j]->installEventFilter(this);
+
+            disconnect(buttons[i][j], &QPushButton::clicked, nullptr, nullptr);
+            connect(buttons[i][j], &QPushButton::clicked, this, &Widget::onButtonClicked);
         }
     }
-    initializeGame(); // 重新初始化遊戲
+    initializeGame();
 }
 
