@@ -1,19 +1,4 @@
-#include "Widget.h"
-#include <QPushButton>
-#include <QGridLayout>
-#include <QVBoxLayout>
-#include <QMessageBox>
-#include <QRandomGenerator>
-#include <QMouseEvent>
-#include <QKeyEvent>
-#include <QQueue>
-#include <QPoint>
-#include <QDebug>
 
-Widget::Widget(QWidget *parent)
-    : QMainWindow(parent), layout(new QGridLayout), grid(rows, QVector<int>(cols, 0)), flags(rows, QVector<bool>(cols, false)) // flags 用來追蹤每個格子是否放置了旗子
-{
-    QWidget *centralWidget = new QWidge#include "Widget.h"
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
