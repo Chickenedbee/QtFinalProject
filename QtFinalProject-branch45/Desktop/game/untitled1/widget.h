@@ -27,7 +27,7 @@ private:
     int cols = 10;          // 列數
     int mineCount = 10;     // 地雷數量
     int flagCount = 0;
-    int correctCount = 0;
+    int cerrectCount = 0;
 
     QGridLayout *layout;          // 網格佈局
     QVector<QVector<int>> grid;  // 儲存遊戲格子狀態，-1 代表地雷
@@ -49,6 +49,7 @@ private:
     QSoundEffect flagSound;
     QSoundEffect mineSound;
     QSoundEffect winSound;
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;  // 事件過濾器
     void keyPressEvent(QKeyEvent *event) override;  // 鍵盤事件
