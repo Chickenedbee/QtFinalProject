@@ -59,7 +59,7 @@ void Widget::onRightClick(QPushButton *button) {
         button->setText("");  // 移除旗子
         flags[button->property("row").toInt()][button->property("col").toInt()] = false;  // 設置旗子狀態為false
     } else {
-        if(button->isEnable == true){
+       if(button->isEnabled() == true){
             button->setText("🚩");  // 放置旗子
             flags[button->property("row").toInt()][button->property("col").toInt()] = true;  // 設置旗子狀態為true
         }
