@@ -23,9 +23,11 @@ public:
     ~Widget();
 
 private:
-    const int rows = 10;          // 行數
-    const int cols = 10;          // 列數
-    const int mineCount = 10;     // 地雷數量
+    int rows = 10;          // 行數
+    int cols = 10;          // 列數
+    int mineCount = 10;     // 地雷數量
+    int flagCount = 0;
+    int correctCount = 0;
     QGridLayout *layout;          // 網格佈局
     QVector<QVector<int>> grid;  // 儲存遊戲格子狀態，-1 代表地雷
     QVector<QVector<QPushButton*>> buttons;  // 儲存所有按鈕
