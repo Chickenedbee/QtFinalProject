@@ -28,6 +28,7 @@ private:
     int mineCount = 10;     // 地雷數量
     int flagCount = 0;
     int correctCount = 0;
+
     QGridLayout *layout;          // 網格佈局
     QVector<QVector<int>> grid;  // 儲存遊戲格子狀態，-1 代表地雷
     QVector<QVector<QPushButton*>> buttons;  // 儲存所有按鈕
@@ -43,6 +44,7 @@ private:
     void resetGame();  // 重置遊戲
     void onRightClick(QPushButton *button);  // 右鍵點擊事件處理
     void onButtonClicked();  // 按鈕點擊事件處理
+
     QSoundEffect clickSound;
     QSoundEffect flagSound;
     QSoundEffect mineSound;
