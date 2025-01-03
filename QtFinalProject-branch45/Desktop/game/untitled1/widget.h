@@ -1,8 +1,10 @@
-﻿#ifndef WIDGET_H
+#ifndef WIDGET_H
 #define WIDGET_H
 
 #include <QMainWindow>
 #include <QVector>
+#include <QDialog>
+#include <QFormLayout>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -27,13 +29,16 @@ private:
     int cols = 10;          // 列數
     int mineCount = 10;     // 地雷數量
     int flagCount = 0;
-    int cerrectCount = 0;
+    int correctCount = 0;
 
     QGridLayout *layout;          // 網格佈局
     QVector<QVector<int>> grid;  // 儲存遊戲格子狀態，-1 代表地雷
     QVector<QVector<QPushButton*>> buttons;  // 儲存所有按鈕
     QVector<QVector<bool>> flags; // 儲存格子是否放置旗子
 
+    void resetGrid(int row, int col);
+    void onResetButtonClicked();
+    void setButton();
     void initializeGame();  // 初始化遊戲
     void reveal(int row, int col);  // 顯示格子的內容
     bool isValid(int row, int col);  // 檢查格子是否有效
