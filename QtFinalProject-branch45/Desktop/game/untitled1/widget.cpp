@@ -1,4 +1,6 @@
-﻿#include "Widget.h"
+#include "Widget.h"
+#include <QDialog>
+#include <QFormLayout>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -13,9 +15,6 @@
 Widget::Widget(QWidget *parent)
     : QMainWindow(parent), layout(new QGridLayout), grid(rows, QVector<int>(cols, 0)), flags(rows, QVector<bool>(cols, false)) // flags 用來追蹤每個格子是否放置了旗子
 {
-    QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-
     // 音效初始化
     clickSound.setSource(QUrl::fromLocalFile(":/sound/click.wav"));
     flagSound.setSource(QUrl::fromLocalFile(":/sound/click2.wav"));
@@ -25,6 +24,43 @@ Widget::Widget(QWidget *parent)
     flagSound.setVolume(100);
     mineSound.setVolume(100);
     winSound.setVolume(100);
+
+    ConfigDialog configDialog;
+    if (configDialog.exec() == QDialog::Accepted){
+        this->rows = configDialog.getRows();
+
+        this->cols = configDialog.getCols();
+        this->mines = configDialog.getMines();
+    } else { // 若用戶取消，使用預設值
+        this->rows = 10;
+        this->cols = 10;
+        this->mines = 10;
+    }
+
+    resetGrid(int rows, int cols);
+    initializeGame();  // 初始化遊戲
+    setCentralWidget(centralWidget);
+}
+
+void Widget::resetGrid(int rows, int cols) {
+    // 刪除舊的布局和按鈕
+    qDeleteAll(findChildren<QPushButton*>());
+    delete layout;
+
+    layout = new QGridLayout;
+    grid = QVector<QVector<int>>(rows, QVector<int>(cols, 0));
+    flags = QVector<QVector<bool>>(rows, QVector<bool>(cols, false));
+    buttons.clear();
+
+    setButton(); // 根據新的行數和列數創建按鈕
+    mainLayout->addLayout(layout);
+}
+
+
+
+void Widget::setButton(){
+    QWidget *centralWidget = new QWidget(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 
     for (int i = 0; i < rows; ++i) {
         QVector<QPushButton*> buttonRow;
@@ -42,12 +78,7 @@ Widget::Widget(QWidget *parent)
         }
         buttons.append(buttonRow);
     }
-
-    initializeGame();  // 初始化遊戲
-    mainLayout->addLayout(layout);
-    setCentralWidget(centralWidget);
-}
-
+};
 Widget::~Widget() {}
 
 bool Widget::eventFilter(QObject *obj, QEvent *event) {
@@ -66,6 +97,7 @@ bool Widget::eventFilter(QObject *obj, QEvent *event) {
 
 void Widget::onRightClick(QPushButton *button) {
     int girdvalue = grid[button->property("row").toInt()][button->property("col").toInt()];
+
     if (button->text() == "🚩") {
         button->setText("");  // 移除旗子
         flags[button->property("row").toInt()][button->property("col").toInt()] = false;  // 設置旗子狀態為false
@@ -73,9 +105,9 @@ void Widget::onRightClick(QPushButton *button) {
 
         flagCount--;
         if(girdvalue == -1){
-            cerrectCount--;
+            correctCount--;
         }
-        if(mineCount == cerrectCount && mineCount == flagCount){
+        if(mineCount == correctCount && mineCount == flagCount){
             winSound.play();
             resetGame();
         }
@@ -88,10 +120,10 @@ void Widget::onRightClick(QPushButton *button) {
             flagCount++;
 
             if(girdvalue == -1){
-                cerrectCount++;
+                correctCount++;
 
             }
-            if(mineCount == cerrectCount && mineCount == flagCount){
+            if(mineCount == correctCount && mineCount == flagCount){
                 winSound.play();
                 revealAllBombs();
                 disableAllButtons();
@@ -246,6 +278,8 @@ void Widget::keyPressEvent(QKeyEvent *event) {
 }
 
 void Widget::resetGame() {
+    correctCount = 0;
+    flagCount = 0;
     if (grid.size() != rows) grid.resize(rows);
     grid.fill(QVector<int>(cols, 0));
 
