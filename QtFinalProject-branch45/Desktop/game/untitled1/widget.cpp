@@ -1,6 +1,6 @@
 #include "Widget.h"
-#include <QDialog>
-#include <QFormLayout>
+#include <QObject>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -9,6 +9,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QQueue>
+#include <QSize>
 #include <QPoint>
 #include <QDebug>
 
@@ -25,27 +26,87 @@ Widget::Widget(QWidget *parent)
     mineSound.setVolume(100);
     winSound.setVolume(100);
 
-    ConfigDialog configDialog;
-    if (configDialog.exec() == QDialog::Accepted){
-        this->rows = configDialog.getRows();
+    centralWidget = new QWidget(this);
+    mainLayout = new QVBoxLayout(centralWidget);
 
-        this->cols = configDialog.getCols();
-        this->mines = configDialog.getMines();
-    } else { // 若用戶取消，使用預設值
-        this->rows = 10;
-        this->cols = 10;
-        this->mines = 10;
-    }
-
-    resetGrid(int rows, int cols);
-    initializeGame();  // 初始化遊戲
+    theDifficultyWidget();
     setCentralWidget(centralWidget);
 }
 
-void Widget::resetGrid(int rows, int cols) {
+
+Widget::~Widget() {}
+
+void Widget::theDifficultyWidget(){
+    qDeleteAll(findChildren<QPushButton*>());
+
+
+    rowsInput = new QLineEdit(this);
+    colsInput = new QLineEdit(this);
+    mineCountInput = new QLineEdit(this);
+
+    rowsInput->setPlaceholderText("rows");
+    colsInput->setPlaceholderText("cols");
+    mineCountInput->setPlaceholderText("mine Count");
+
+    QPushButton *easyButton = new QPushButton("easy", this);
+    QPushButton *normalButton = new QPushButton("normal", this);
+    QPushButton *hardButton = new QPushButton("hard", this);
+    QPushButton *customizeButton = new QPushButton("customize", this);
+
+    connect(easyButton, &QPushButton::clicked, this, &Widget::setEasy);
+    connect(normalButton, &QPushButton::clicked, this, &Widget::setNormal);
+    connect(hardButton, &QPushButton::clicked, this, &Widget::setHard);
+    connect(customizeButton, &QPushButton::clicked, this, &Widget::setCustomise);
+
+    QHBoxLayout *inputLayout = new QHBoxLayout();
+    inputLayout->addWidget(rowsInput);
+    inputLayout->addWidget(colsInput);
+    inputLayout->addWidget(mineCountInput);
+
+    QGridLayout *buttonLayout = new QGridLayout();
+    buttonLayout->addWidget(easyButton, 0, 0);
+    buttonLayout->addWidget(normalButton, 0, 1);
+    buttonLayout->addWidget(hardButton, 0, 2);
+    buttonLayout->addWidget(customizeButton, 0, 3);
+
+    mainLayout->addLayout(inputLayout);
+    mainLayout->addLayout(buttonLayout);
+    mainLayout->addLayout(layout);
+
+}
+
+void Widget::setEasy(){
+    rows = 10;
+    cols = 10;
+    mineCount = 10;
+    resetGrid();
+}
+
+void Widget::setNormal(){
+    rows = 20;
+    cols = 20;
+    mineCount = 80;
+    resetGrid();
+}
+
+void Widget::setHard(){
+    rows = 15;
+    cols = 15;
+    mineCount = 60;
+    resetGrid();
+}
+
+void Widget::setCustomise(){
+    rows = rowsInput->text().toInt();
+    cols = colsInput->text().toInt();
+    mineCount = mineCountInput->text().toInt();
+    resetGrid();
+}
+
+void Widget::resetGrid() {
     // 刪除舊的布局和按鈕
     qDeleteAll(findChildren<QPushButton*>());
-    delete layout;
+    qDeleteAll(findChildren<QLineEdit*>());
 
     layout = new QGridLayout;
     grid = QVector<QVector<int>>(rows, QVector<int>(cols, 0));
@@ -53,15 +114,33 @@ void Widget::resetGrid(int rows, int cols) {
     buttons.clear();
 
     setButton(); // 根據新的行數和列數創建按鈕
+    initializeGame();  // 初始化遊戲
+
     mainLayout->addLayout(layout);
 }
 
+void Widget::resetGame() {
+    if (grid.size() != rows) grid.resize(rows);
+        grid.fill(QVector<int>(cols, 0));
+
+    if (flags.size() != rows) flags.resize(rows);
+        flags.fill(QVector<bool>(cols, false));
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            buttons[i][j]->setEnabled(true);
+            buttons[i][j]->setText("");
+            buttons[i][j]->installEventFilter(this);
+
+            disconnect(buttons[i][j], &QPushButton::clicked, nullptr, nullptr);
+            connect(buttons[i][j], &QPushButton::clicked, this, &Widget::onButtonClicked);
+        }
+    }
+    initializeGame();
+}
 
 
 void Widget::setButton(){
-    QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-
     for (int i = 0; i < rows; ++i) {
         QVector<QPushButton*> buttonRow;
         for (int j = 0; j < cols; ++j) {
@@ -78,8 +157,8 @@ void Widget::setButton(){
         }
         buttons.append(buttonRow);
     }
-};
-Widget::~Widget() {}
+    setCentralWidget(centralWidget);
+}
 
 bool Widget::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::MouseButtonRelease) {
@@ -97,7 +176,6 @@ bool Widget::eventFilter(QObject *obj, QEvent *event) {
 
 void Widget::onRightClick(QPushButton *button) {
     int girdvalue = grid[button->property("row").toInt()][button->property("col").toInt()];
-
     if (button->text() == "🚩") {
         button->setText("");  // 移除旗子
         flags[button->property("row").toInt()][button->property("col").toInt()] = false;  // 設置旗子狀態為false
@@ -105,9 +183,9 @@ void Widget::onRightClick(QPushButton *button) {
 
         flagCount--;
         if(girdvalue == -1){
-            correctCount--;
+            cerrectCount--;
         }
-        if(mineCount == correctCount && mineCount == flagCount){
+        if(mineCount == cerrectCount && mineCount == flagCount){
             winSound.play();
             resetGame();
         }
@@ -120,10 +198,10 @@ void Widget::onRightClick(QPushButton *button) {
             flagCount++;
 
             if(girdvalue == -1){
-                correctCount++;
+                cerrectCount++;
 
             }
-            if(mineCount == correctCount && mineCount == flagCount){
+            if(mineCount == cerrectCount && mineCount == flagCount){
                 winSound.play();
                 revealAllBombs();
                 disableAllButtons();
@@ -252,7 +330,8 @@ void Widget::revealAllBombs() {
 
     connect(messageBox, &QMessageBox::buttonClicked, this, [this, messageBox](QAbstractButton *button) {
         if (messageBox->buttonRole(button) == QMessageBox::YesRole) {
-            resetGame();  // 重置遊戲
+            centralWidget->setFixedSize(QSize());
+            theDifficultyWidget();
         }
         messageBox->deleteLater();
     });
@@ -277,24 +356,3 @@ void Widget::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void Widget::resetGame() {
-    correctCount = 0;
-    flagCount = 0;
-    if (grid.size() != rows) grid.resize(rows);
-    grid.fill(QVector<int>(cols, 0));
-
-    if (flags.size() != rows) flags.resize(rows);
-    flags.fill(QVector<bool>(cols, false));
-
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            buttons[i][j]->setEnabled(true);
-            buttons[i][j]->setText("");
-            buttons[i][j]->installEventFilter(this);
-
-            disconnect(buttons[i][j], &QPushButton::clicked, nullptr, nullptr);
-            connect(buttons[i][j], &QPushButton::clicked, this, &Widget::onButtonClicked);
-        }
-    }
-    initializeGame();
-}
