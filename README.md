@@ -32,6 +32,7 @@
   * 按鈕
   * 數字
   * 成功與失敗介面
+  * 難度選擇介面
 
 ![image](https://github.com/Chickenedbee/QtFinalProject/blob/main/IMG_3222.jpeg)
 
