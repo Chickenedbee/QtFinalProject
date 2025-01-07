@@ -43,3 +43,5 @@
 - [ ] 演算法(需測試成功)
 - [ ] 美術繪圖
 
+https://youtu.be/RVaP46wwacY?si=tg5ycnsMDSHFZjXt
+
